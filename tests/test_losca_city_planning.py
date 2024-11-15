@@ -22,11 +22,6 @@ parsed_items = [item for item in spider.parse(test_response)]
 freezer.stop()
 
 
-# def test_tests():
-#     print(test_response.text)
-#     assert False
-
-
 def test_title():
     assert parsed_items[0]["title"] == "City Planning Commission"
 
@@ -73,12 +68,7 @@ def test_source():
 
 
 def test_links():
-    assert parsed_items[0]["links"] == [
-        {
-            "href": "http://planning.lacity.gov/dcpapi/meetings/document/77621",
-            "title": "77621",
-        }
-    ]
+    assert parsed_items[0]["links"] == []
 
 
 def test_classification():

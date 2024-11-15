@@ -79,10 +79,10 @@ class LoscaCityPlanningSpider(CityScrapersSpider):
 
         agenda_link = item.get("AgendaLink")
         if agenda_link and self._validate_url(agenda_link):
-            links.append({"href": item["AgendaLink"], "title": item.get("Agenda", "Agenda")})
+            links.append({"href": item["AgendaLink"], "title": "Agenda"})
         docs_link = item.get("AddDocsLink")
         if docs_link and self._validate_url(docs_link):
-            links.append({"href": item["AddDocsLink"], "title": item.get("AddDocs", "Additional Documents")})
+            links.append({"href": item["AddDocsLink"], "title": "Additional Documents"})
 
         return links
 
