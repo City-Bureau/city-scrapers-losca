@@ -21,7 +21,7 @@ class LoscaMetroTransitSpider(LegistarSpider):
 
         for event in events:
             meeting = Meeting(
-                title=event["Name"]["label"],
+                title=event.get("Name", {}).get("label", "No Title"),
                 description=self._parse_description(event),
                 classification=self._parse_classification(event),
                 start=self.legistar_start(event),
@@ -44,11 +44,12 @@ class LoscaMetroTransitSpider(LegistarSpider):
 
     def _parse_classification(self, item):
         """Parse or generate classification from allowed options."""
-        if "committee" in item["Name"]["label"].lower():
+        name_label = item.get("Name", {}).get("label", "").lower()
+        if "committee" in name_label:
             return COMMITTEE
-        if "board" in item["Name"]["label"].lower():
+        if "board" in name_label:
             return BOARD
-        if "council" in item["Name"]["label"].lower():
+        if "council" in name_label:
             return CITY_COUNCIL
         return NOT_CLASSIFIED
 
@@ -70,31 +71,35 @@ class LoscaMetroTransitSpider(LegistarSpider):
 
         # Parse meeting link
         if isinstance(item.get("Name"), dict) and item["Name"].get("url"):
-            links.append({
-                "href": item["Name"]["url"],
-                "title": item["Name"].get("label", "Meeting Details")
-            })
+            links.append(
+                {
+                    "href": item["Name"]["url"],
+                    "title": item["Name"].get("label", "Meeting Details"),
+                }
+            )
 
         # Parse agenda link
         if isinstance(item.get("Agenda"), dict) and item["Agenda"].get("url"):
-            links.append({
-                "href": item["Agenda"]["url"],
-                "title": item["Agenda"].get("label", "Agenda")
-            })
+            links.append(
+                {
+                    "href": item["Agenda"]["url"],
+                    "title": item["Agenda"].get("label", "Agenda"),
+                }
+            )
 
         # Parse iCalendar link
         if isinstance(item.get("iCalendar"), dict) and item["iCalendar"].get("url"):
-            links.append({
-                "href": item["iCalendar"]["url"],
-                "title": "iCalendar"
-            })
+            links.append({"href": item["iCalendar"]["url"], "title": "iCalendar"})
 
         # Parse audio link
-        if isinstance(item.get("Audio"), dict) and item["Audio"].get("url") and item["Audio"].get("label") != "Not\xa0available":
-            links.append({
-                "href": item["Audio"]["url"],
-                "title": item["Audio"]["label"]
-            })
+        if (
+            isinstance(item.get("Audio"), dict)
+            and item["Audio"].get("url")
+            and item["Audio"].get("label") != "Not\xa0available"
+        ):
+            links.append(
+                {"href": item["Audio"]["url"], "title": item["Audio"]["label"]}
+            )
 
         return links
 
@@ -119,4 +124,3 @@ class LoscaMetroTransitSpider(LegistarSpider):
             return None
         else:
             return self._get_id(item)
-            
