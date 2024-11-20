@@ -20,7 +20,6 @@ class LoscaMetroTransitSpider(LegistarSpider):
         """
 
         for event in events:
-            print(events)
             meeting = Meeting(
                 title=event["Name"]["label"],
                 description=self._parse_description(event),
@@ -69,26 +68,33 @@ class LoscaMetroTransitSpider(LegistarSpider):
         """Parse or generate links to additional information."""
         links = []
 
-        meeting_link = item["Name"]["url"]
-        if meeting_link:
+        # Parse meeting link
+        if isinstance(item.get("Name"), dict) and item["Name"].get("url"):
             links.append({
                 "href": item["Name"]["url"],
-                "title": item["Name"]["label"]})
-        agenda_link = item["Agenda"]["url"] if isinstance(item["Agenda"], dict) else item["Agenda"]
-        if isinstance(agenda_link, dict):
+                "title": item["Name"].get("label", "Meeting Details")
+            })
+
+        # Parse agenda link
+        if isinstance(item.get("Agenda"), dict) and item["Agenda"].get("url"):
             links.append({
                 "href": item["Agenda"]["url"],
-                "title": item["Agenda"]["label"]})
-        calendar_link = item["iCalendar"]["url"]
-        if calendar_link:
+                "title": item["Agenda"].get("label", "Agenda")
+            })
+
+        # Parse iCalendar link
+        if isinstance(item.get("iCalendar"), dict) and item["iCalendar"].get("url"):
             links.append({
                 "href": item["iCalendar"]["url"],
-                "title": "iCalendar"})
-        audio_link = item["Audio"]
-        if audio_link != "Not\xa0available":
+                "title": "iCalendar"
+            })
+
+        # Parse audio link
+        if isinstance(item.get("Audio"), dict) and item["Audio"].get("url") and item["Audio"].get("label") != "Not\xa0available":
             links.append({
                 "href": item["Audio"]["url"],
-                "title": item["Audio"]["label"]})
+                "title": item["Audio"]["label"]
+            })
 
         return links
 
@@ -106,11 +112,11 @@ class LoscaMetroTransitSpider(LegistarSpider):
         if item["start"] is None:
             return "TENTATIVE"
         else:
-            self._get_status(item)
+            return self._get_status(item)
 
     def _parse_id(self, item):
         if item["start"] is None:
             return None
         else:
-            self._get_id(item)
+            return self._get_id(item)
             
