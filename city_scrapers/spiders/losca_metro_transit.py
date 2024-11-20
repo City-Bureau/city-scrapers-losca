@@ -34,8 +34,8 @@ class LoscaMetroTransitSpider(LegistarSpider):
                 source=self.legistar_source(event),
             )
 
-            meeting["status"] = self._get_status(meeting)
-            meeting["id"] = self._get_id(meeting)
+            meeting["status"] = self._parse_status(meeting)
+            meeting["id"] = self._parse_id(meeting)
 
             yield meeting
 
@@ -101,3 +101,16 @@ class LoscaMetroTransitSpider(LegistarSpider):
             }
         else:
             return item["Meeting Location"]
+
+    def _parse_status(self, item):
+        if item["start"] is None:
+            return "TENTATIVE"
+        else:
+            self._get_status(item)
+
+    def _parse_id(self, item):
+        if item["start"] is None:
+            return None
+        else:
+            self._get_id(item)
+            
