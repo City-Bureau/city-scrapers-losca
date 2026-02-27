@@ -1,5 +1,6 @@
 import re
 
+import scrapy
 from city_scrapers_core.constants import BOARD
 from city_scrapers_core.items import Meeting
 from city_scrapers_core.spiders import CityScrapersSpider
@@ -12,14 +13,32 @@ class LoscaBoardOfEdSpider(CityScrapersSpider):
     timezone = "America/Los_Angeles"
     # original URL was https://www.lausd.org/boe
     # they have an RSS feed. scrape that instead
-    start_urls = [
-        "https://www.lausd.org/site/RSS.aspx?DomainID=1057&ModuleInstanceID=73805&PageID=18628&PMIID=0"  # noqa
-    ]
+    start_urls = "https://www.lausd.org/apps/events/2026/02/calendar/?id=0"
 
+    custom_settings = {
+        "TWISTED_REACTOR": "twisted.internet.asyncioreactor.AsyncioSelectorReactor",
+        "DOWNLOAD_HANDLERS": {
+            "http": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
+            "https": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
+        },
+        "PLAYWRIGHT_BROWSER_TYPE": "firefox",
+        "PLAYWRIGHT_LAUNCH_OPTIONS": {
+            "headless": True,
+        },
+        "DOWNLOAD_DELAY": 1,
+        "ROBOTSTXT_OBEY": False,
+        "USER_AGENT": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:88.0) Gecko/20100101 Firefox/88.0",  # noqa
+    }
+
+    def start_requests(self):
+        yield scrapy.Request(self.start_urls, meta={"playwright": True}, callback=self.parse)
+
+    
     def parse(self, response):
         """
         Parse meeting items from RSS feed.
         """
+        print(response.text)
         location = {
             "name": "LAUSD Headquarters",
             "address": "333 South Beaudry Avenue, Board Room, Los Angeles, CA 90017",
