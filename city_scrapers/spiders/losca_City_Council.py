@@ -2,33 +2,32 @@ import re
 from datetime import datetime
 
 import scrapy
-from dateutil.parser import parse as dateparse
-
-from city_scrapers_core.constants import CITY_COUNCIL, CANCELLED
+from city_scrapers_core.constants import CANCELLED, CITY_COUNCIL
 from city_scrapers_core.items import Meeting
 from city_scrapers_core.spiders import CityScrapersSpider
+from dateutil.parser import parse as dateparse
 
 
 class LoscaCityCouncilSpider(CityScrapersSpider):
-    name = "losca_city_council"
+    name = "losca_City_Council"
     agency = "Los Angeles City Council"
     timezone = "America/Los_Angeles"
     custom_settings = {"ROBOTSTXT_OBEY": False}
 
     source_url = "https://clerk.lacity.gov/calendar"
 
-    portal_meeting_url = "https://lacity.primegov.com/Portal/Meeting?meetingTemplateId={template_id}" # noqa
-    upcoming_url = "https://lacity.primegov.com/api/v2/PublicPortal/ListUpcomingMeetings" # noqa
-    archived_url = "https://lacity.primegov.com/api/v2/PublicPortal/ListArchivedMeetings?year={year}" # noqa
+    portal_meeting_url = "https://lacity.primegov.com/Portal/Meeting?meetingTemplateId={template_id}"  # noqa
+    upcoming_url = (
+        "https://lacity.primegov.com/api/v2/PublicPortal/ListUpcomingMeetings"  # noqa
+    )
+    archived_url = "https://lacity.primegov.com/api/v2/PublicPortal/ListArchivedMeetings?year={year}"  # noqa
 
     location = {
         "name": "Office of the City Clerk",
         "address": "200 N Spring St, Room 360, Los Angeles, CA 90012",
     }
 
-    _CITY_COUNCIL_TITLE_RE = re.compile(
-        r"(^|\b)(city council)(\b|$)", re.I
-    )
+    _CITY_COUNCIL_TITLE_RE = re.compile(r"(^|\b)(city council)(\b|$)", re.I)
 
     def _has_cancellation_notice(self, links):
         for link in links or []:
@@ -99,7 +98,7 @@ class LoscaCityCouncilSpider(CityScrapersSpider):
         links = []
         if obj.get("videoUrl"):
             links.append({"title": "Video", "href": obj["videoUrl"]})
-        for doc in (obj.get("documentList") or []):
+        for doc in obj.get("documentList") or []:
             template_id = doc.get("templateId")
             compile_type = doc.get("compileOutputType")
             template_name = (doc.get("templateName") or "").strip()
