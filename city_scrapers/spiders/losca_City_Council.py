@@ -71,7 +71,7 @@ class LoscaCityCouncilSpider(CityScrapersSpider):
             if not self._CITY_COUNCIL_TITLE_RE.search(title):
                 continue
 
-            if re.search(r"\bSAP\b", title or "", flags=re.I):
+            if re.search(r"\bSAP\b", title, flags=re.I):
                 continue
 
             meeting = Meeting(
