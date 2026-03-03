@@ -2,7 +2,7 @@ import re
 from datetime import datetime
 
 import scrapy
-from city_scrapers_core.constants import CANCELLED, CITY_COUNCIL
+from city_scrapers_core.constants import BOARD, CANCELLED, CITY_COUNCIL, COMMISSION, COMMITTEE, NOT_CLASSIFIED
 from city_scrapers_core.items import Meeting
 from city_scrapers_core.spiders import CityScrapersSpider
 from dateutil.parser import parse as dateparse
@@ -27,7 +27,12 @@ class LoscaCityCouncilSpider(CityScrapersSpider):
         "address": "200 N Spring St, Room 360, Los Angeles, CA 90012",
     }
 
-    _CITY_COUNCIL_TITLE_RE = re.compile(r"(^|\b)(city council)(\b|$)", re.I)
+    _classification_keywords = {
+        CITY_COUNCIL: "city council",
+        BOARD: "board",
+        COMMITTEE: "committee",
+        COMMISSION: "commission",
+    }
 
     def _has_cancellation_notice(self, links):
         for link in links or []:
@@ -68,8 +73,7 @@ class LoscaCityCouncilSpider(CityScrapersSpider):
 
             title = (obj.get("title") or "").strip()
 
-            if not self._CITY_COUNCIL_TITLE_RE.search(title):
-                continue
+            classification = self._parse_classification(title)
 
             if re.search(r"\bSAP\b", title, flags=re.I):
                 continue
@@ -77,7 +81,7 @@ class LoscaCityCouncilSpider(CityScrapersSpider):
             meeting = Meeting(
                 title=title,
                 description="",
-                classification=CITY_COUNCIL,
+                classification=classification,
                 start=start,
                 end=None,
                 all_day=False,
@@ -114,3 +118,12 @@ class LoscaCityCouncilSpider(CityScrapersSpider):
                     }
                 )
         return links
+
+    def _parse_classification(self, title):
+        """Parse meeting classification based on title keywords."""
+        
+        for classification, keyword in self._classification_keywords.items():
+            if keyword in title.lower():
+                return classification
+        
+        return NOT_CLASSIFIED
