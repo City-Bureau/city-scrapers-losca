@@ -41,6 +41,11 @@ class LoscaCityCouncilSpider(CityScrapersSpider):
                 return True
         return False
 
+    def _set_meeting_status(self, meeting):
+        if self._has_cancellation_notice(meeting.get("links")):
+            return CANCELLED
+        return self._get_status(meeting)
+
     def start_requests(self):
         current_year = datetime.now().year
 
@@ -91,10 +96,7 @@ class LoscaCityCouncilSpider(CityScrapersSpider):
                 source=self.source_url,
             )
 
-            if self._has_cancellation_notice(meeting.get("links")):
-                meeting["status"] = CANCELLED
-            else:
-                meeting["status"] = self._get_status(meeting)
+            meeting["status"] = self._set_meeting_status(meeting)
             meeting["id"] = self._get_id(meeting)
             yield meeting
 
@@ -113,7 +115,7 @@ class LoscaCityCouncilSpider(CityScrapersSpider):
             if compile_type == 3 or "html" in template_name.lower():
                 links.append(
                     {
-                        "title": template_name or "Agenda",
+                        "title": re.sub(r'^HTML\s+', '', template_name) or "Agenda",
                         "href": self.portal_meeting_url.format(template_id=template_id),
                     }
                 )
