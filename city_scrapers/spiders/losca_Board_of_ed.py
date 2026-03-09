@@ -13,7 +13,7 @@ class LoscaBoardOfEdSpider(CityScrapersSpider):
     timezone = "America/Los_Angeles"
     # original URL was https://www.lausd.org/boe
     # they have an RSS feed. scrape that instead
-    start_urls = "https://www.lausd.org/apps/events/2026/02/calendar/?id=0"
+    start_urls = "https://boe.lausd.org/apps/events/2026/02/calendar/?id=0"
 
     custom_settings = {
         "TWISTED_REACTOR": "twisted.internet.asyncioreactor.AsyncioSelectorReactor",
@@ -43,24 +43,24 @@ class LoscaBoardOfEdSpider(CityScrapersSpider):
             "name": "LAUSD Headquarters",
             "address": "333 South Beaudry Avenue, Board Room, Los Angeles, CA 90017",
         }
-        for item in response.css("item"):
-            meeting = Meeting(
-                title=self._parse_title(item),
-                description="",
-                classification=BOARD,
-                start=self._parse_start(item),
-                end=self._parse_end(item),
-                all_day=False,
-                time_notes="",
-                location=location,
-                links=self._parse_links(item),
-                source=response.url,
-            )
+        # for item in response.css("item"):
+        #     meeting = Meeting(
+        #         title=self._parse_title(item),
+        #         description="",
+        #         classification=BOARD,
+        #         start=self._parse_start(item),
+        #         end=self._parse_end(item),
+        #         all_day=False,
+        #         time_notes="",
+        #         location=location,
+        #         links=self._parse_links(item),
+        #         source=response.url,
+        #     )
 
-            meeting["status"] = self._get_status(meeting)
-            meeting["id"] = self._get_id(meeting)
+        #     meeting["status"] = self._get_status(meeting)
+        #     meeting["id"] = self._get_id(meeting)
 
-            yield meeting
+        yield None
 
     def _parse_title(self, item):
         """
