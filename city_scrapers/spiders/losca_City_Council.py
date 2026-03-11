@@ -2,7 +2,14 @@ import re
 from datetime import datetime
 
 import scrapy
-from city_scrapers_core.constants import BOARD, CANCELLED, CITY_COUNCIL, COMMISSION, COMMITTEE, NOT_CLASSIFIED
+from city_scrapers_core.constants import (
+    BOARD,
+    CANCELLED,
+    CITY_COUNCIL,
+    COMMISSION,
+    COMMITTEE,
+    NOT_CLASSIFIED,
+)
 from city_scrapers_core.items import Meeting
 from city_scrapers_core.spiders import CityScrapersSpider
 from dateutil.parser import parse as dateparse
@@ -115,7 +122,7 @@ class LoscaCityCouncilSpider(CityScrapersSpider):
             if compile_type == 3 or "html" in template_name.lower():
                 links.append(
                     {
-                        "title": re.sub(r'^HTML\s+', '', template_name) or "Agenda",
+                        "title": re.sub(r"^HTML\s+", "", template_name) or "Agenda",
                         "href": self.portal_meeting_url.format(template_id=template_id),
                     }
                 )
@@ -123,9 +130,9 @@ class LoscaCityCouncilSpider(CityScrapersSpider):
 
     def _parse_classification(self, title):
         """Parse meeting classification based on title keywords."""
-        
+
         for classification, keyword in self._classification_keywords.items():
             if keyword in title.lower():
                 return classification
-        
+
         return NOT_CLASSIFIED

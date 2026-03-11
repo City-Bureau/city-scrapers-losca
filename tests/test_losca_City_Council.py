@@ -94,19 +94,19 @@ def test_source(parsed_items):
 def test_links(parsed_items):
     assert parsed_items[0]["links"] == [
         {
-            "title": "HTML Notice of Cancellation",
+            "title": "Notice of Cancellation",
             "href": "https://lacity.primegov.com/Portal/Meeting?meetingTemplateId=136037",  # noqa
         }
     ]
     assert parsed_items[1]["links"] == [
         {
-            "title": "HTML Recess Notice",
+            "title": "Recess Notice",
             "href": "https://lacity.primegov.com/Portal/Meeting?meetingTemplateId=140330",  # noqa
         }
     ]
     assert parsed_items[2]["links"] == [
         {
-            "title": "HTML Agenda",
+            "title": "Agenda",
             "href": "https://lacity.primegov.com/Portal/Meeting?meetingTemplateId=151891",  # noqa
         }
     ]
