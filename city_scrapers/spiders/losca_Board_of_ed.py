@@ -141,18 +141,13 @@ class LoscaBoardOfEdSpider(CityScrapersSpider):
             "address": "",
         }
 
-    def _parse_start(self, event, year, month, day):
-        """
-        Parse start datetime from event element.
-        """
-        # Get direct child span.event-data, then extract all its text
-        # excluding nested events
+    def _get_event_data_text(self, event):
+        """Extracts and cleans text from the event data span, excluding nested events."""
         event_data_span = event.xpath("./span[@class='event-data']")
         if not event_data_span:
             return None
 
         # Get text from span.event-data, excluding text inside nested div.event elements
-        # Get direct text nodes + text from children that aren't div.event
         time_parts = (
             event_data_span[0]
             .xpath("./text() | ./*[not(self::div[@class='event'])]//text()")
@@ -162,6 +157,13 @@ class LoscaBoardOfEdSpider(CityScrapersSpider):
             return None
 
         event_data = " ".join(part.strip() for part in time_parts if part.strip())
+        return event_data if event_data else None
+
+    def _parse_start(self, event, year, month, day):
+        """
+        Parse start datetime from event element.
+        """
+        event_data = self._get_event_data_text(event)
         if not event_data:
             return None
 
@@ -187,23 +189,7 @@ class LoscaBoardOfEdSpider(CityScrapersSpider):
         """
         Parse end datetime from event element.
         """
-        # Get direct child span.event-data, then extract all its text
-        # excluding nested events
-        event_data_span = event.xpath("./span[@class='event-data']")
-        if not event_data_span:
-            return None
-
-        # Get text from span.event-data, excluding text inside nested div.event elements
-        # Get direct text nodes + text from children that aren't div.event
-        time_parts = (
-            event_data_span[0]
-            .xpath("./text() | ./*[not(self::div[@class='event'])]//text()")
-            .getall()
-        )
-        if not time_parts:
-            return None
-
-        event_data = " ".join(part.strip() for part in time_parts if part.strip())
+        event_data = self._get_event_data_text(event)
         if not event_data:
             return None
 
