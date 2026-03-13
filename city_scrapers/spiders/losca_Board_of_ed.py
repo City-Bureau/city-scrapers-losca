@@ -2,7 +2,7 @@ import re
 from datetime import date
 
 import scrapy
-from city_scrapers_core.constants import BOARD
+from city_scrapers_core.constants import BOARD, COMMITTEE
 from city_scrapers_core.items import Meeting
 from city_scrapers_core.spiders import CityScrapersSpider
 from dateutil.parser import parse
@@ -15,8 +15,13 @@ class LoscaBoardOfEdSpider(CityScrapersSpider):
     timezone = "America/Los_Angeles"
 
     # Date range configuration
-    years_back = 3
-    months_ahead = 3
+    years_back = 1
+    months_ahead = 1
+
+    location = {
+        "name": "LAUSD Headquarters",
+        "address": "333 South Beaudry Avenue, Board Room, Los Angeles, CA 90017",
+    }
 
     custom_settings = {
         "TWISTED_REACTOR": "twisted.internet.asyncioreactor.AsyncioSelectorReactor",
@@ -31,6 +36,7 @@ class LoscaBoardOfEdSpider(CityScrapersSpider):
         "DOWNLOAD_DELAY": 1,
         "ROBOTSTXT_OBEY": False,
         "USER_AGENT": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:88.0) Gecko/20100101 Firefox/88.0",  # noqa
+        "FEED_EXPORT_ENCODING": "utf-8",
     }
 
     def start_requests(self):
@@ -84,15 +90,17 @@ class LoscaBoardOfEdSpider(CityScrapersSpider):
                 if start is None:
                     continue
 
+                title = self._parse_title(event)
+
                 meeting = Meeting(
-                    title=self._parse_title(event),
+                    title=title,
                     description="",
-                    classification=BOARD,
+                    classification=self._parse_classification(title),
                     start=start,
                     end=end,
                     all_day=False,
                     time_notes="",
-                    location=self._parse_location(event),
+                    location=self.location,
                     links=self._parse_links(event),
                     source=response.url,
                 )
@@ -115,31 +123,13 @@ class LoscaBoardOfEdSpider(CityScrapersSpider):
         title = re.sub(r"\s+", " ", title).strip()
         return title if title else self.agency
 
-    def _parse_location(self, event):
+    def _parse_classification(self, title):
         """
-        Parse location from event element.
+        Parse meeting classification from title.
         """
-        # Get location from direct child span.event-data/span.event-location (XPath)
-        location_parts = event.xpath(
-            "./span[@class='event-data']/span[@class='event-location']//text()"
-        ).getall()
-        if location_parts:
-            location_text = " ".join(
-                part.strip() for part in location_parts if part.strip()
-            )
-            # Normalize whitespace but preserve intentional newlines
-            # between address parts
-            location_text = re.sub(r"[ \t]+", " ", location_text)
-            location_text = re.sub(r"\n+", "\n", location_text)
-            location_text = re.sub(r"\n\s+", "\n", location_text).strip().strip("()")
-            return {
-                "name": "",
-                "address": location_text,
-            }
-        return {
-            "name": "",
-            "address": "",
-        }
+        if "committee" in title.lower():
+            return COMMITTEE
+        return BOARD
 
     def _get_event_data_text(self, event):
         """Extracts and cleans text from the event data span, excluding nested events."""

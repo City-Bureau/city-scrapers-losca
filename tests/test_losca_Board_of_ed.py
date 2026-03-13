@@ -76,22 +76,9 @@ def test_status():
 
 def test_location():
     assert parsed_items[0]["location"] == {
-        "name": "",
-        "address": (
-            "333 S. Beaudry Ave., Los Angeles, CA 90017\n"
-            "LAUSD Administrative HQ, Board Room - 1st Floor"
-        ),
+        "name": "LAUSD Headquarters",
+        "address": "333 South Beaudry Avenue, Board Room, Los Angeles, CA 90017",
     }
-
-
-def test_location_empty():
-    # Test events without location return empty strings (not hardcoded defaults)
-    empty_location_events = [
-        item for item in parsed_items if item["location"]["address"] == ""
-    ]
-    assert (
-        len(empty_location_events) >= 1
-    )  # At least one event should have empty location
 
 
 def test_source():
