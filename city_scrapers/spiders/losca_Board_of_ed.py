@@ -1,19 +1,22 @@
 import re
+from datetime import date
 
 import scrapy
 from city_scrapers_core.constants import BOARD
 from city_scrapers_core.items import Meeting
 from city_scrapers_core.spiders import CityScrapersSpider
 from dateutil.parser import parse
+from dateutil.relativedelta import relativedelta
 
 
 class LoscaBoardOfEdSpider(CityScrapersSpider):
     name = "losca_Board_of_ed"
     agency = "Los Angeles Unified School District Board of Education"
     timezone = "America/Los_Angeles"
-    # original URL was https://www.lausd.org/boe
-    # they have an RSS feed. scrape that instead
-    start_urls = "https://boe.lausd.org/apps/events/2026/02/calendar/?id=0"
+
+    # Date range configuration
+    years_back = 3
+    months_ahead = 3
 
     custom_settings = {
         "TWISTED_REACTOR": "twisted.internet.asyncioreactor.AsyncioSelectorReactor",
@@ -31,104 +34,213 @@ class LoscaBoardOfEdSpider(CityScrapersSpider):
     }
 
     def start_requests(self):
-        yield scrapy.Request(self.start_urls, meta={"playwright": True}, callback=self.parse)
+        """Generate calendar URLs for each month in the date range."""
+        today = date.today()
+        start_date = today - relativedelta(years=self.years_back)
+        end_date = today + relativedelta(months=self.months_ahead)
 
-    
-    def parse(self, response):
+        current_date = start_date
+        while current_date <= end_date:
+            url = (
+                f"https://boe.lausd.org/apps/events/"
+                f"{current_date.year}/{current_date.month}/calendar/?id=0"
+            )
+            yield scrapy.Request(
+                url,
+                meta={
+                    "playwright": True,
+                    "playwright_page_methods": [
+                        {
+                            "method": "wait_for_selector",
+                            "args": ["td.day"],
+                            "kwargs": {"timeout": 10000},
+                        },
+                    ],
+                },
+                callback=self.parse,
+                cb_kwargs={"year": current_date.year, "month": current_date.month},
+            )
+            current_date += relativedelta(months=1)
+
+    def parse(self, response, year, month):
         """
-        Parse meeting items from RSS feed.
+        Parse meeting items from HTML calendar page.
         """
-        print(response.text)
-        location = {
-            "name": "LAUSD Headquarters",
-            "address": "333 South Beaudry Avenue, Board Room, Los Angeles, CA 90017",
+        # Parse all calendar days with events (exclude .extra days from adjacent months)
+        for day_cell in response.css("td.day:not(.extra)"):
+            day_num = day_cell.css("span.day-of-month::text").get()
+            if not day_num:
+                continue
+
+            day_num = int(day_num.strip())
+
+            # Parse each event in this day (including nested events)
+            # Use XPath to get all div.event at any level
+            for event in day_cell.xpath(".//div[@class='event']"):
+                start = self._parse_start(event, year, month, day_num)
+                end = self._parse_end(event, year, month, day_num)
+
+                # Skip events without start time
+                if start is None:
+                    continue
+
+                meeting = Meeting(
+                    title=self._parse_title(event),
+                    description="",
+                    classification=BOARD,
+                    start=start,
+                    end=end,
+                    all_day=False,
+                    time_notes="",
+                    location=self._parse_location(event),
+                    links=self._parse_links(event),
+                    source=response.url,
+                )
+
+                meeting["status"] = self._get_status(meeting)
+                meeting["id"] = self._get_id(meeting)
+
+                yield meeting
+
+    def _parse_title(self, event):
+        """
+        Parse meeting title from event element.
+        """
+        # Get text from direct child a.event-title only (XPath to avoid nested events)
+        title_parts = event.xpath("./a[@class='event-title']//text()").getall()
+        if not title_parts:
+            return self.agency
+        title = " ".join(part.strip() for part in title_parts if part.strip())
+        # Normalize whitespace (collapse newlines, tabs, multiple spaces)
+        title = re.sub(r"\s+", " ", title).strip()
+        return title if title else self.agency
+
+    def _parse_location(self, event):
+        """
+        Parse location from event element.
+        """
+        # Get location from direct child span.event-data/span.event-location (XPath)
+        location_parts = event.xpath(
+            "./span[@class='event-data']/span[@class='event-location']//text()"
+        ).getall()
+        if location_parts:
+            location_text = " ".join(
+                part.strip() for part in location_parts if part.strip()
+            )
+            # Normalize whitespace but preserve intentional newlines
+            # between address parts
+            location_text = re.sub(r"[ \t]+", " ", location_text)
+            location_text = re.sub(r"\n+", "\n", location_text)
+            location_text = re.sub(r"\n\s+", "\n", location_text).strip().strip("()")
+            return {
+                "name": "",
+                "address": location_text,
+            }
+        return {
+            "name": "",
+            "address": "",
         }
-        # for item in response.css("item"):
-        #     meeting = Meeting(
-        #         title=self._parse_title(item),
-        #         description="",
-        #         classification=BOARD,
-        #         start=self._parse_start(item),
-        #         end=self._parse_end(item),
-        #         all_day=False,
-        #         time_notes="",
-        #         location=location,
-        #         links=self._parse_links(item),
-        #         source=response.url,
-        #     )
 
-        #     meeting["status"] = self._get_status(meeting)
-        #     meeting["id"] = self._get_id(meeting)
-
-        yield None
-
-    def _parse_title(self, item):
+    def _parse_start(self, event, year, month, day):
         """
-        Parse meeting title. RSS feed titles always start with timestamp.
-        Ex: '9/19/2024 10:00 AM - 1:00 PM Children... Early Education Committee'
-        Remove timestamp from string and return title.
-        Use regex and fallback to #split().
+        Parse start datetime from event element.
         """
-        raw = item.css("title::text").get()
-        # Match everything after the timestamp pattern
-        match = re.search(
-            r"\d{1,2}/\d{1,2}/\d{4}\s+\d{1,2}:\d{2}\s+[AP]M\s+-\s+\d{1,2}:\d{2}\s+[AP]M\s+(.*)",  # noqa
-            raw,
+        # Get direct child span.event-data, then extract all its text
+        # excluding nested events
+        event_data_span = event.xpath("./span[@class='event-data']")
+        if not event_data_span:
+            return None
+
+        # Get text from span.event-data, excluding text inside nested div.event elements
+        # Get direct text nodes + text from children that aren't div.event
+        time_parts = (
+            event_data_span[0]
+            .xpath("./text() | ./*[not(self::div[@class='event'])]//text()")
+            .getall()
         )
-        if match:
-            return match.group(1).strip()
-        else:
-            # If pattern doesn't match, return original without first 6 words
-            return " ".join(raw.split()[6:])
+        if not time_parts:
+            return None
 
-    def _parse_start(self, item):
-        """
-        Parse start datetime as a naive datetime object.
-        pubdate::text gives us GMT, which is 7 hours ahead of PST.
-        Get start date from title instead, since it is in the correct time zone.
-        """
-        raw = item.css("title::text").get()
-        match = re.search(r"(\d{1,2}/\d{1,2}/\d{4}\s+\d{1,2}:\d{2}\s+[AP]M)", raw)
-        if match:
-            return parse(match.group(1))
-        else:
-            # Fallback to the original method if regex doesn't match
-            return parse(" ".join(raw.split()[0:3]))
+        event_data = " ".join(part.strip() for part in time_parts if part.strip())
+        if not event_data:
+            return None
 
-    def _parse_end(self, item):
+        # Extract start time (format: "10 AM", "3:30 PM", etc.)
+        time_match = re.search(r"(\d{1,2})(?::(\d{2}))?\s*([AP]M)", event_data)
+        if time_match:
+            hour = int(time_match.group(1))
+            minute = int(time_match.group(2)) if time_match.group(2) else 0
+            meridiem = time_match.group(3)
+
+            # Convert to 24-hour format
+            if meridiem == "PM" and hour != 12:
+                hour += 12
+            elif meridiem == "AM" and hour == 12:
+                hour = 0
+
+            date_str = f"{month}/{day}/{year} {hour}:{minute:02d}"
+            return parse(date_str)
+
+        return None
+
+    def _parse_end(self, event, year, month, day):
         """
-        Parse end datetime as a naive datetime object.
-        End time is in title.
+        Parse end datetime from event element.
         """
-        raw = item.css("title::text").get()
-        match = re.search(
-            r"\d{1,2}/\d{1,2}/\d{4}\s+\d{1,2}:\d{2}\s+[AP]M\s+-\s+(\d{1,2}:\d{2}\s+[AP]M)",  # noqa
-            raw,
+        # Get direct child span.event-data, then extract all its text
+        # excluding nested events
+        event_data_span = event.xpath("./span[@class='event-data']")
+        if not event_data_span:
+            return None
+
+        # Get text from span.event-data, excluding text inside nested div.event elements
+        # Get direct text nodes + text from children that aren't div.event
+        time_parts = (
+            event_data_span[0]
+            .xpath("./text() | ./*[not(self::div[@class='event'])]//text()")
+            .getall()
         )
-        if match:
-            date = raw.split()[0]
-            time = match.group(1)
-            return parse(f"{date} {time}")
-        else:
-            # Fallback to the original method if regex doesn't match
-            raw_split = raw.split()
-            return parse(f"{raw_split[0]} {' '.join(raw_split[4:6])}")
+        if not time_parts:
+            return None
 
-    def _parse_links(self, item):
-        """
-        Parse links. item.get() returns
-        '...</title><link>https://www.lausd.org...EventDateID=73502<pubdate>...'
-        This string does not have a closing </link> tag even though the source
-        response does. This causes item.css('link') to return an empty tag.
-        We must parse link another way. Try regex with split as fallback.
-        """
-        raw = item.get()
-        match = re.search(r"<link>(.*?)<", raw, re.DOTALL)
-        if match:
-            link = match.group(1).strip()
-        else:
-            # Fallback to double split if regex doesn't match
-            split = raw.split("<link>")[1]
-            link = split.split("<pubdate>")[0].strip()
+        event_data = " ".join(part.strip() for part in time_parts if part.strip())
+        if not event_data:
+            return None
 
-        return [{"title": "Meeting Details", "href": link}]
+        # Extract end time after the dash (format: "– 2 PM", "– 5:30 PM", etc.)
+        time_match = re.search(r"–\s*(\d{1,2})(?::(\d{2}))?\s*([AP]M)", event_data)
+        if time_match:
+            hour = int(time_match.group(1))
+            minute = int(time_match.group(2)) if time_match.group(2) else 0
+            meridiem = time_match.group(3)
+
+            # Convert to 24-hour format
+            if meridiem == "PM" and hour != 12:
+                hour += 12
+            elif meridiem == "AM" and hour == 12:
+                hour = 0
+
+            date_str = f"{month}/{day}/{year} {hour}:{minute:02d}"
+            return parse(date_str)
+
+        return None
+
+    def _parse_links(self, event):
+        """
+        Parse links from event element.
+        """
+        # Get href from direct child a.event-title (XPath for consistency)
+        href = event.xpath("./a[@class='event-title']/@href").get()
+        if not href:
+            return []
+
+        # Extract actual URL from javascript:openLink() call
+        url_match = re.search(r"openLink\('([^']+)'\)", href)
+        if url_match:
+            url = url_match.group(1)
+            # Make absolute URL
+            if url.startswith("/"):
+                url = f"https://boe.lausd.org{url}"
+            return [{"title": "Meeting Details", "href": url}]
+
+        return []
