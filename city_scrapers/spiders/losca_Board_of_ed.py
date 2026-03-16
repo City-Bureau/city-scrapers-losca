@@ -121,6 +121,7 @@ class LoscaBoardOfEdSpider(CityScrapersSpider):
         title = " ".join(part.strip() for part in title_parts if part.strip())
         # Normalize whitespace (collapse newlines, tabs, multiple spaces)
         title = re.sub(r"\s+", " ", title).strip()
+        title = title.replace("RE-SCHEDULED", "RESCHEDULED")
         return title if title else self.agency
 
     def _parse_classification(self, title):
