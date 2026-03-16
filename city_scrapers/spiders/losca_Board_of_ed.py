@@ -91,26 +91,7 @@ class LoscaBoardOfEdSpider(CityScrapersSpider):
                     continue
 
                 title = self._parse_title(event)
-
-                meeting = Meeting(
-                    title=title,
-                    description="",
-                    classification=self._parse_classification(title),
-                    start=start,
-                    end=end,
-                    all_day=False,
-                    time_notes="",
-                    location=self.location,
-                    links=self._parse_links(event),
-                    source=response.url,
-                )
-
-                meeting["status"] = self._get_status(meeting)
-                meeting["id"] = self._get_id(meeting)
-
-                yield meeting
-                title = self._parse_title(event)
-                cleaned_title = self._clean_title(title)
+                cleaned_title = self._normalize_title(title)
 
                 meeting = Meeting(
                     title=cleaned_title,
