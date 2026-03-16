@@ -131,16 +131,24 @@ class LoscaBoardOfEdSpider(CityScrapersSpider):
                 yield meeting
 
     def _normalize_title(self, title):
-        title = re.sub(r"^(CANCELED|CANCELLED|RESCHEDULED)\s*(-\s*)?", "", title, flags=re.IGNORECASE).strip()
-        
+        title = re.sub(
+            r"^(CANCELED|CANCELLED|RESCHEDULED)\s*(-\s*)?",
+            "",
+            title,
+            flags=re.IGNORECASE,
+        ).strip()
+
         match = re.search(r"\bto\b.+?(?:-+)\s*(.+)", title, flags=re.IGNORECASE)
         if match:
             return match.group(1).strip()
-        match = re.search(r"^(.*?),?\s*\bto\b.+\b(?:am|pm)\b\s*(.+)", title, flags=re.IGNORECASE)
+        match = re.search(
+            r"^(.*?),?\s*\bto\b.+\b(?:am|pm)\b\s*(.+)", title, flags=re.IGNORECASE
+        )
         if match:
             return match.group(2).strip()
-        
+
         return title
+
     def _parse_title(self, event):
         """
         Parse meeting title from event element.
