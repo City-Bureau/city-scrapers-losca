@@ -10,25 +10,31 @@ from city_scrapers.spiders.losca_Board_of_ed import LoscaBoardOfEdSpider
 
 test_response = file_response(
     join(dirname(__file__), "files", "losca_Board_of_ed.html"),
-    url="https://www.lausd.org/site/RSS.aspx?DomainID=1057&ModuleInstanceID=73805&PageID=18628&PMIID=0",  # noqa
+    url="https://boe.lausd.org/apps/events/2026/03/calendar/?id=0",
 )
 spider = LoscaBoardOfEdSpider()
 
-freezer = freeze_time("2024-09-19")
+freezer = freeze_time("2026-03-10")
 freezer.start()
 
-parsed_items = [item for item in spider.parse(test_response)]
+parsed_items = [item for item in spider.parse(test_response, year=2026, month=3)]
 
 freezer.stop()
 
 
 def test_count():
-    assert len(parsed_items) == 12
+    assert len(parsed_items) == 10
 
 
 def test_title():
-    assert parsed_items[0]["title"] == "Greening Schools & Climate Resilience Committee"
-    assert parsed_items[1]["title"] == "Curriculum and Instruction Committee"
+    assert parsed_items[0]["title"] == (
+        "Special Board Meeting, Including Closed Session Items - "
+        "Recessed until 03/10/26"
+    )
+    assert parsed_items[1]["title"] == (
+        "Special Board Meeting, Including Closed Session Items "
+        "RECESSED from 03/02/26"
+    )
 
 
 def test_description():
@@ -36,11 +42,21 @@ def test_description():
 
 
 def test_start():
-    assert parsed_items[0]["start"] == datetime(2024, 9, 24, 13, 0)
+    assert parsed_items[0]["start"] == datetime(2026, 3, 2, 10, 0)
 
 
 def test_end():
-    assert parsed_items[0]["end"] == datetime(2024, 9, 24, 16, 0)
+    assert parsed_items[0]["end"] == datetime(2026, 3, 2, 14, 0)
+
+
+def test_minutes_parsing():
+    # Test March 18 Special Education Committee: 3:30 PM – 5:30 PM
+    march_18_event = [
+        item for item in parsed_items if "Special Education" in item["title"]
+    ]
+    assert len(march_18_event) == 1
+    assert march_18_event[0]["start"] == datetime(2026, 3, 18, 15, 30)
+    assert march_18_event[0]["end"] == datetime(2026, 3, 18, 17, 30)
 
 
 def test_time_notes():
@@ -50,12 +66,12 @@ def test_time_notes():
 def test_id():
     assert (
         parsed_items[0]["id"]
-        == "losca_Board_of_ed/202409241300/x/greening_schools_climate_resilience_committee"  # noqa
+        == "losca_Board_of_ed/202603021000/x/special_board_meeting_including_closed_session_items_recessed_until_03_10_26"  # noqa
     )
 
 
 def test_status():
-    assert parsed_items[0]["status"] == "tentative"
+    assert parsed_items[0]["status"] == "passed"
 
 
 def test_location():
@@ -68,7 +84,7 @@ def test_location():
 def test_source():
     assert (
         parsed_items[0]["source"]
-        == "https://www.lausd.org/site/RSS.aspx?DomainID=1057&ModuleInstanceID=73805&PageID=18628&PMIID=0"  # noqa
+        == "https://boe.lausd.org/apps/events/2026/03/calendar/?id=0"
     )
 
 
@@ -76,13 +92,13 @@ def test_links():
     assert parsed_items[0]["links"] == [
         {
             "title": "Meeting Details",
-            "href": "https://www.lausd.org/site/Default.aspx?PageID=18628&amp;PageType=17&amp;DomainID=1057&amp;ModuleInstanceID=73805&amp;EventDateID=73502",  # noqa
+            "href": "https://boe.lausd.org/apps/events/2026/3/2/36082672/?id=0",
         }
     ]
     assert parsed_items[1]["links"] == [
         {
             "title": "Meeting Details",
-            "href": "https://www.lausd.org/site/Default.aspx?PageID=18628&amp;PageType=17&amp;DomainID=1057&amp;ModuleInstanceID=73805&amp;EventDateID=71879",  # noqa
+            "href": "https://boe.lausd.org/apps/events/2026/3/10/36293863/?id=0",
         }
     ]
 
