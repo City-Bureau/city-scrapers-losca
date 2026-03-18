@@ -153,7 +153,9 @@ class LoscaBoardOfEdSpider(CityScrapersSpider):
         return BOARD
 
     def _get_event_data_text(self, event):
-        """Extracts and cleans text from the event data span, excluding nested events."""
+        """
+        Extracts and cleans text from the event data span, excluding nested events.
+        """
         event_data_span = event.xpath("./span[@class='event-data']")
         if not event_data_span:
             return None
