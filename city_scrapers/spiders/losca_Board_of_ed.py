@@ -16,7 +16,7 @@ class LoscaBoardOfEdSpider(CityScrapersSpider):
 
     # Date range configuration
     years_back = 1
-    months_ahead = 1
+    months_ahead = 3
 
     location = {
         "name": "LAUSD Headquarters",
