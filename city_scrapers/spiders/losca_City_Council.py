@@ -77,8 +77,13 @@ class LoscaCityCouncilSpider(CityScrapersSpider):
         window_end = datetime(now.year + 1, 12, 31, 23, 59, 59)
 
         for obj in data:
-            start = dateparse(obj.get("dateTime"))
-            if not start:
+            raw_dt = obj.get("dateTime")
+            if not raw_dt:
+                continue
+            try:
+                start = dateparse(raw_dt)
+            except (ValueError, TypeError):
+                self.logger.warning("Could not parse dateTime: %r", raw_dt)
                 continue
             if not (window_start <= start <= window_end):
                 continue
