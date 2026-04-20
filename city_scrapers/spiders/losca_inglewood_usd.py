@@ -204,7 +204,7 @@ class LoscaInglewoodUsdSpider(CityScrapersSpider):
                 record_start = response.meta.get("record_start", 0)
                 connection_string = response.meta["connection_string"]
                 security_token = response.meta["security_token"]
-            except KeyError:
+            except AttributeError:
                 self.logger.warning(
                     f"Failed to extract pagination data from response from {response.url}: {response.text[:200]}"  # noqa
                 )
