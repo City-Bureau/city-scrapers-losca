@@ -83,8 +83,9 @@ class LoscaBoardOfEdSpider(CityScrapersSpider):
             # Parse each event in this day (including nested events)
             # Use XPath to get all div.event at any level
             for event in day_cell.xpath(".//div[@class='event']"):
-                start = self._parse_start(event, year, month, day_num)
-                end = self._parse_end(event, year, month, day_num)
+                event_data = self._get_event_data_text(event)
+                start = self._parse_start(event_data, year, month, day_num)
+                end = self._parse_end(event_data, year, month, day_num)
 
                 # Skip events without start time
                 if start is None:
@@ -172,11 +173,10 @@ class LoscaBoardOfEdSpider(CityScrapersSpider):
         event_data = " ".join(part.strip() for part in time_parts if part.strip())
         return event_data if event_data else None
 
-    def _parse_start(self, event, year, month, day):
+    def _parse_start(self, event_data, year, month, day):
         """
-        Parse start datetime from event element.
+        Parse start datetime from event data text.
         """
-        event_data = self._get_event_data_text(event)
         if not event_data:
             return None
 
@@ -198,11 +198,10 @@ class LoscaBoardOfEdSpider(CityScrapersSpider):
 
         return None
 
-    def _parse_end(self, event, year, month, day):
+    def _parse_end(self, event_data, year, month, day):
         """
-        Parse end datetime from event element.
+        Parse end datetime from event data text.
         """
-        event_data = self._get_event_data_text(event)
         if not event_data:
             return None
 
