@@ -101,7 +101,7 @@ class LoscaInglewoodMixin(CityScrapersSpider, metaclass=LoscaInglewoodMixinMeta)
 
         # 2. Now we can deduplicate
         for _, entries in rows_by_date.items():
-            # Prefere non-spanish over spanish, fall back to all if only Spanish exists
+            # Prefer non-spanish over spanish, fall back to all if only Spanish exists
             non_spanish = [(s, t, r) for s, t, r in entries if "spanish" not in t]
             chosen_meeting = non_spanish or entries
 
