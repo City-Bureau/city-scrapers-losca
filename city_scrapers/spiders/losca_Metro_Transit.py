@@ -32,7 +32,6 @@ class LoscaMetroTransitSpider(LegistarSpider):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.since_year = 2020
-        self._scraped_urls = set()
 
     def parse_legistar(self, events):
         for event in events:
