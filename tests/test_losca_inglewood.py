@@ -45,7 +45,7 @@ def test_end():
 
 def test_time_notes():
     assert (
-        parsed_items[3]["time_notes"]
+        parsed_items[9]["time_notes"]
         == "Please refer to the meeting attachment for more accurate information about the meeting time, location and status."  # noqa
     )
 
