@@ -173,7 +173,7 @@ class LoscaInglewoodMixin(CityScrapersSpider, metaclass=LoscaInglewoodMixinMeta)
         """Extract all document links from the download popout menu."""
         links = []
         seen = set()
-        for a in row.css("ol[role='menu'] a[href]"):
+        for a in row.css("td.downloads ol a[href]"):
             href = a.attrib.get("href", "").strip()
             if not href or href in seen:
                 continue

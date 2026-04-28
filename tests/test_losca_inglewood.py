@@ -23,7 +23,7 @@ freezer.stop()
 
 
 def test_title():
-    assert parsed_items[3]["title"] == "Regular Meeting"
+    assert parsed_items[9]["title"] == "Regular Meeting"
 
 
 def test_title_special():
@@ -32,44 +32,45 @@ def test_title_special():
 
 
 def test_description():
-    assert parsed_items[3]["description"] == ""
+    assert parsed_items[9]["description"] == ""
 
 
 def test_start():
-    assert parsed_items[3]["start"] == datetime(2026, 2, 24, 0, 0)
+    assert parsed_items[9]["start"] == datetime(2026, 2, 24, 0, 0)
 
 
 def test_end():
-    assert parsed_items[3]["end"] is None
+    assert parsed_items[9]["end"] is None
 
 
 def test_time_notes():
     assert (
-        parsed_items[3]["time_notes"]
+        parsed_items[9]["time_notes"]
         == "Please refer to the meeting attachment for more accurate information about the meeting location and time."  # noqa
     )
 
 
 def test_classification():
-    assert parsed_items[3]["classification"] == CITY_COUNCIL
+    assert parsed_items[9]["classification"] == CITY_COUNCIL
 
 
 def test_location():
-    assert parsed_items[3]["location"] == {
+
+    assert parsed_items[9]["location"] == {
         "name": "Inglewood City Hall",
         "address": "One Manchester Blvd, Inglewood, CA 90301",
     }
 
 
 def test_source():
-    assert parsed_items[3]["source"] == (
+    assert parsed_items[9]["source"] == (
         "https://www.cityofinglewood.org/AgendaCenter/Search/"
         "?term=&CIDs=3,&startDate=&endDate=&dateRange=&dateSelector="
     )
 
 
 def test_links():
-    assert parsed_items[3]["links"] == [
+    assert parsed_items[9]["links"] == [
         {
             "href": "https://www.cityofinglewood.org/AgendaCenter/ViewFile/Agenda/_02242026-4463",  # noqa
             "title": "Agenda",
@@ -110,7 +111,7 @@ def test_no_duplicate_meetings():
 
 
 def test_status():
-    assert parsed_items[3]["status"] == "passed"
+    assert parsed_items[9]["status"] == "passed"
 
 
 def test_cancelled_status():
@@ -122,7 +123,7 @@ def test_cancelled_status():
 
 def test_id():
     assert (
-        parsed_items[3]["id"]
+        parsed_items[9]["id"]
         == "losca_inglewood_city_council/202602240000/x/regular_meeting"
     )
 
