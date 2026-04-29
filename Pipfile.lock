@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "a24e3d4aacbe4a11e8f628d8f0a6c923d918cd1540e676da6a0a1e61ec6eb9a8"
+            "sha256": "13de169d978a0101c32058f2d7b1eae309fcdcffbf1ffb7d6317d4f05edb7f71"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -286,7 +286,7 @@
             ],
             "git": "https://github.com/City-Bureau/city-scrapers-core.git",
             "markers": "python_version >= '3.6' and python_version < '4.0'",
-            "ref": "78ccb55766bc445eb2c685bd40a769ce673cb2ee"
+            "ref": "1d06f640cdcfd5986e089379a134f8aec35ce2a9"
         },
         "constantly": {
             "hashes": [
@@ -358,6 +358,25 @@
             ],
             "markers": "python_version >= '3.10'",
             "version": "==1.4.0"
+        },
+        "curl-cffi": {
+            "hashes": [
+                "sha256:03f21ade2d72978c2bb8670e9b6de5260e2755092b02d94b70b906813662998d",
+                "sha256:060fe2c99c41d3cb7f894de318ddf4b0301b08dca70453d769bd4e74b36b8483",
+                "sha256:1439fbef3500fb723333c826adf0efb0e2e5065a703fb5eccce637a2250db34a",
+                "sha256:2eed50a969201605c863c4c31269dfc3e0da52916086ac54553cfa353022425c",
+                "sha256:58ebf02de64ee5c95613209ddacb014c2d2f86298d7080c0a1c12ed876ee0690",
+                "sha256:5945478cd28ad7dfb5c54473bcfb6743ee1d66554d57951fdf8fc0e7d8cf4e45",
+                "sha256:5ffbc82e59f05008ec08ea432f0e535418823cda44178ee518906a54f27a5f0f",
+                "sha256:6e503f9a103f6ae7acfb3890c843b53ec030785a22ae7682a22cc43afb94123e",
+                "sha256:b158c41a25388690dd0d40b5bc38d1e0f512135f17fdb8029868cbc1993d2e5b",
+                "sha256:c42e8fa3c667db9ccd2e696ee47adcd3cd5b0838d7282f3fc45f6c0ef3cfdfa7",
+                "sha256:e35e89c6a69872f9749d6d5fda642ed4fc159619329e99d577d0104c9aad5893",
+                "sha256:e7176f2c2d22b542e3cf261072a81deb018cfa7688930f95dddef215caddb469"
+            ],
+            "index": "pypi",
+            "markers": "python_version >= '3.10'",
+            "version": "==0.14.0"
         },
         "defusedxml": {
             "hashes": [
@@ -758,6 +777,14 @@
             "markers": "python_version >= '3.9'",
             "version": "==1.58.0"
         },
+        "protego": {
+            "hashes": [
+                "sha256:37640bc0ebe37572d624453a21381d05e9d86e44f89ff1e81794d185a0491666",
+                "sha256:93a5e662b61399a0e1f208a324f2c6ea95b23ee39e6cbf2c96246da4a656c2f6"
+            ],
+            "markers": "python_version >= '3.9'",
+            "version": "==0.4.0"
+        },
         "pyasn1": {
             "hashes": [
                 "sha256:697a8ecd6d98891189184ca1fa05d1bb00e2f84b5977c481452050549c8a72cf",
@@ -820,7 +847,7 @@
                 "sha256:a8b2bc7bffae282281c8140a97d3aa9c14da0b136dfe83f850eea9a5f7470427"
             ],
             "index": "pypi",
-            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'",
+            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2'",
             "version": "==2.9.0.post0"
         },
         "pytz": {
@@ -1047,7 +1074,7 @@
                 "sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274",
                 "sha256:ff70335d468e7eb6ec65b95b99d3a2836546063f63acc5171de367e834932a81"
             ],
-            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'",
+            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2'",
             "version": "==1.17.0"
         },
         "tldextract": {
