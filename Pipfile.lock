@@ -142,7 +142,7 @@
                 "sha256:fc7de24befaeae77ba923797c7c87834c73648a05a4bde34b3b7e5588973a453",
                 "sha256:fe562eb1a64e67dd297ccc4f5addea2501664954f2692b69a76449ec7913ecbf"
             ],
-            "markers": "python_version >= '3.9'",
+            "markers": "python_full_version >= '3.9' and platform_python_implementation != 'PyPy'",
             "version": "==2.0.0"
         },
         "charset-normalizer": {
@@ -624,6 +624,14 @@
             "markers": "python_version >= '3.9'",
             "version": "==1.10.0"
         },
+        "protego": {
+            "hashes": [
+                "sha256:3466f41438421cf90008e98534d5fde47dc16a17482571d021143ac18b70ace9",
+                "sha256:7210e6e06a8db839502baf1bfbcb810689a58e394d31408ef1ef9e4e3d79fc44"
+            ],
+            "markers": "python_version >= '3.10'",
+            "version": "==0.6.0"
+        },
         "playwright": {
             "hashes": [
                 "sha256:185e0132578733d02802dfddfbbc35f42be23a45ff49ccae5081f25952238117",
@@ -668,8 +676,16 @@
                 "sha256:600f49d217304a5902ac3c37e1281c9fe94e4d0489de643a9504c5cdfdfc6b29",
                 "sha256:b727414169a36b7d524c1c3e31839a521725078d7b2ff038656844266160a992"
             ],
-            "markers": "python_version >= '3.10'",
+            "markers": "implementation_name != 'PyPy'",
             "version": "==3.0"
+        },
+        "pyee": {
+            "hashes": [
+                "sha256:0b931f7c14535667ed4c7e0d531716368715e860b988770fc7eb8578d1f67fc8",
+                "sha256:af2f8fede4171ef667dfded53f96e2ed0d6e6bd7ee3bb46437f77e3b57689228"
+            ],
+            "markers": "python_version >= '3.8'",
+            "version": "==13.0.1"
         },
         "pydispatcher": {
             "hashes": [
