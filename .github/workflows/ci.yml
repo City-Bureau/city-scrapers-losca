@@ -52,6 +52,10 @@ jobs:
         run: |
           pipenv run pytest || [ $? -eq 5 ]
 
+      - name: Install Playwright browsers
+        if: github.event_name == 'pull_request'
+        run: pipenv run playwright install --with-deps firefox
+
       - name: Validate output with scrapy
         if: github.event_name == 'pull_request'
         run: |
